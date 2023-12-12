@@ -32,10 +32,22 @@
 ## Here we are doing a little Generative Adversial Training
 
 ## Options
-# - PixelShuffle: probably going for this one
+# - PixelShuffle: probably going for this one for the Feature Pyramid
 # - Some diffusion thingy
 # - Generator
 
 # Pixel-level discriminator 
 
 # We produce high resolution target domain with detailed features, having learned the style specifics
+
+
+### 2.2 - Module S ###
+
+## The actual segmentation module
+
+## Options
+# - Three convolutional layers with kernels 3x3x3 and 9x9, with a softmax at the end → Feature Pyramid Network for Object Detention
+# - Adapt the upper going U-Net thingy to accept the lateral connections for multiscalling and sharp detection (?)
+
+# * ?? Could we connect the ASPPnet to the pyramid and then run that throught a u net or smt ??
+
