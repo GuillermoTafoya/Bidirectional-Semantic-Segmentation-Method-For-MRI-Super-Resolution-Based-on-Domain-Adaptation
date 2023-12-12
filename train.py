@@ -36,12 +36,13 @@
 # - Some diffusion thingy
 # - Generator
 
-# Pixel-level discriminator 
+# Pixel-level discriminator → we input the source composite images and the target domain images
+## Five Convolutional Layers → {64,128,256,512,1}, except for the last one, each followed by a leaky ReLU
 
 # We produce high resolution target domain with detailed features, having learned the style specifics
 
 
-### 2.2 - Module S ###
+### 2.2 - Module S Part 1 ###
 
 ## The actual segmentation module
 
@@ -51,3 +52,13 @@
 
 # * ?? Could we connect the ASPPnet to the pyramid and then run that throught a u net or smt ??
 
+### 3 - Module S Part 2 ###
+
+## We use labelled source domain images andcomposite images for supervised learning
+
+## We use unlabelled target domain images for self supervised learning
+
+## We perform label correction on source domain labels based on segmentation results of the composite images 
+
+## Feature Distribution of both domains are further aligned by training agains a Output-Space Domian Discriminator. 
+## Where we input the segmentation predictions of both domains.
