@@ -1,6 +1,12 @@
 import torch
 import torch.nn as nn
 
+# Created by @simonamador, 12/12/2023
+# Inspired by Liang & Wang (doi: 10.1080/01431161.2023.2169593)
+
+# Decoder of the S Module. Input MRI feature map (80x80) and module R features for each label, 
+# output image labels (320x320). 
+
 class decoder_s(nn.Module):
     def __init__(self,):
         self.step1 = nn.ConvTranspose2d(1, 1, kernel_size=3, padding=0, stride=2, output_padding=1)
@@ -16,7 +22,8 @@ class decoder_s(nn.Module):
         x = self.step3(x)
         s = self.activation(x)
         return s
-    
+
+# Output-Space Domain Discriminator (ODD) of the Module S. Encode generated labels to obtain ODD Loss.
 class odd(nn.Module):
     def __init__(self,):
         self.step1 = nn.Sequential(
