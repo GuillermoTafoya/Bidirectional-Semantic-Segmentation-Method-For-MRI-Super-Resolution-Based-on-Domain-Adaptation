@@ -4,6 +4,9 @@ import numpy as np
 import lpips
 import os
 
+# Created by @simonamador, 12/12/2023
+# Inspired by Liang & Wang (doi: 10.1080/01431161.2023.2169593)
+
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"]='0'
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
