@@ -5,19 +5,19 @@ import torch.nn.functional as F
 torch.nn.PixelShuffle
 
 # Given 
-class s_thingy(nn.Module):
-    def __init__(self,):
+class r_thingy(nn.Module):
+    def __init__(self):
         self.pixelShuffle1 = nn.PixelShuffle(2)
         self.pixelShuffle2 = nn.PixelShuffle(2)
+        self.bilinear_interpolation_layer = nn.UpsamplingBilinear2d(size=(320,320))
 
     def forward(self, dict_feats, x):
         x = self.pixelShuffle1(x)
         dict_feats['step1'] = x
         x = self.pixelShuffle2(x)
         dict_feats['step2'] = x
-        x = self.step3(x)
-        s = self.activation(x)
-        return s
+        x = self.bilinear_interpolation_layer(x)
+        return (x,dict_feats)
     
 
 # PatchGAN
@@ -57,7 +57,7 @@ class pdd(nn.Module):
     
 if __name__ == '__main__':
     from torchsummary import summary
-    rmodel = s_thingy()
+    rmodel = r_thingy()
     pddmodel = pdd()
     summary(rmodel, (1, 80, 80), device='cpu')
     summary(pddmodel, (1, 320, 320), device='cpu')
