@@ -3,7 +3,7 @@ import torch.nn as nn
 import E
 import S
 import R
-from utils import downsample, upsample, max_treshold
+from utils import downsample
 
 class JUAN(nn.Module):
     def __init__(self):
