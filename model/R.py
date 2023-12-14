@@ -4,9 +4,9 @@ import torch.nn.functional as F
 import numpy as np
 
 # Given 
-class r_thingy(nn.Module):
+class Decoder_r(nn.Module):
     def __init__(self):
-        super(r_thingy, self).__init__()  
+        super(Decoder_r, self).__init__()  
         self.pixelShuffle1 = nn.PixelShuffle(2)
         self.pixelShuffle2 = nn.PixelShuffle(2)
         #self.bilinear_interpolation_layer = F.interpolate(size=(320,320))
@@ -27,14 +27,14 @@ def normal_init(m, mean, std):
         m.weight.data.normal_(mean, std)
         m.bias.data.zero_()
 
-class pdd(nn.Module):
+class Pdd(nn.Module):
     # initializers
     def __init__(self, d=64):
         """
         five convolutional layers with 4 x 4 convolutional kernel size, 
         where the channel number is {64, 128, 256, 512, 1}, respectively
         """
-        super(pdd, self).__init__()
+        super(Pdd, self).__init__()
         """
         self.conv1 = nn.Conv2d(6, d, 4, 2, 1)
         self.conv2 = nn.Conv2d(d, d * 2, 4, 2, 1)
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     #from torchsummary import summary
     from torchinfo import summary
     #model = Net().to(device)
-    rmodel = r_thingy()
-    pddmodel = pdd()
+    rmodel = Decoder_r()
+    pddmodel = Pdd()
     summary(rmodel, input_size=(16, 80, 80), device='cpu')
     summary(pddmodel, (1, 320, 320), device='cpu')
