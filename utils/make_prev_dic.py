@@ -183,4 +183,8 @@ def make_dic_prev(img_list, gold_list, input_size, dim, flip=0,max_shape=[-1,-1,
             exit()
     print(dic.dtype)
     print(seg.dtype)
-    return dic, seg
+    return {
+        "Is":dic,
+        "As": seg,
+        "It": "float16",
+    }
