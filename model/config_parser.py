@@ -1,0 +1,27 @@
+import argparse
+import os
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument('-rl', '--result_save_location', action='store',dest='result_loc', type=str, help='Output folder name, default: result/conv_style/')
+parser.add_argument('-wl', '--weight_save_location', action='store',dest='weight_loc', default = os.path.dirname(os.path.abspath(__file__)), type=str, help='Output folder name, default: weights/conv_style/')
+parser.add_argument('-axi', '--axi_weight',action='store',dest='axi',default=os.path.dirname(os.path.abspath(__file__))+'/axi.h5',type=str, help='Axial weight file')
+parser.add_argument('-cor', '--cor_weight',action='store',dest='cor',default=os.path.dirname(os.path.abspath(__file__))+'/cor.h5',type=str, help='Coronal weight file')
+parser.add_argument('-sag', '--sag_weight',action='store',dest='sag',default=os.path.dirname(os.path.abspath(__file__))+'/sag.h5',type=str, help='Sagittal weight file')
+parser.add_argument('-hl', '--history_save_location', action='store',dest='hist_loc', type=str, default=os.path.dirname(os.path.abspath(__file__)), help='Output folder name, default: history/conv_style/')
+parser.add_argument('-is', '--input_shape',action='store', dest='isize',type=int, nargs='+', default= [192, 192], help='Input size ex.-is 100 100 1')
+parser.add_argument('-bs', '--batch_size',action='store', dest='bsize',type=int, default=30, help='batch size')
+parser.add_argument('-e', '--epoch',action='store',dest='epoch',default=1500,  type=int, help='Number of epoch for training')
+parser.add_argument('-s', '--conv_style', choices=['basic','res','dense','RCL'], default='basic', action='store',dest='style', type=str, help='Conv block style')
+parser.add_argument('-n', '--conv_num', default=3, action='store',dest='ite', type=int, help='Number of convolution in block')
+parser.add_argument('-d', '--model_depth', default=4, action='store',dest='depth', type=int, help='Deep learning model detph')
+parser.add_argument('-c', '--n_channel', default=32, action='store',dest='dim', type=int, help='Start convolution channel size')
+parser.add_argument('-i', '--kernel_initial', choices=['he_normal', 'TruncatedNormal', 'RandomNormal'], default='he_normal', action='store',dest='init', type=str, help='Convolution weight initial method')
+parser.add_argument('-a', '--activation', choices=['elu', 'relu'], default='elu', action='store',dest='acti', type=str, help='Activation method')
+parser.add_argument('-lr', '--learning_rate', default=1e-4, action='store',dest='lr', type=float, help='Learning rate')
+parser.add_argument('-l', '--loss', choices=['hyb_loss', 'hyb_loss2', 'ori_dice_loss', 'dice_loss','dis_dice_loss'], default='dice_loss', action='store',dest='loss', type=str, help='Loss function')
+parser.add_argument('-m', '--metric', choices=['dice_coef', 'dis_dice_coef'], default=['dice_coef'], nargs='*', action='store',dest='coef', help='Eval metric')
+parser.add_argument('-gpu', '--gpu_number',action='store',dest='gpu',type=str, default='-1',help='Select GPU')
+parser.add_argument('-il', '--input_label',action='store', dest='ilabel',type=int, nargs='+', default = [1,2,5,6,4,3], help='Input labels ex: 1 2 3 4 5 6')
+parser.add_argument('-ol', '--output_label',action='store', dest='olabel',type=int, nargs='+', default = [161,160,1,42,4,5], help='output labels ex: 160 161 160 161 0 0')
+parser.add_argument('-il2', '--input_axisdim',action='store', dest='iaxis',type=int, nargs='+', default=[7,7,4], help='Input size ex.-is 7 7 4')
