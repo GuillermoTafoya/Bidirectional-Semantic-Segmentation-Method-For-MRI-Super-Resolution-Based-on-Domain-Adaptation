@@ -2,6 +2,7 @@
 
 import torch.nn.functional as F
 import torch.nn as nn
+import torch
 
 from config_parser import config
 from unet.unet_network import unet_network as Unet_network
@@ -21,8 +22,15 @@ class Module_e(nn.Module):
         self.conv = nn.Conv2d(n_channels, n_channels, kernel_size=3, stride=2)
         
     def forward(self, x):
+        # Perform segmentation
         _ = self.model(x)
-        feature_map = self.model.deepest_feature_map
-        reduced_feature_map = self.conv(feature_map)
-        return reduced_feature_map
-    
+
+        # Access the stored deepest feature map
+        deepest_features = self.model.deepest_feature_map
+        deepest_features_numpy = deepest_features.numpy()
+        deepest_features_torch = torch.from_numpy(deepest_features_numpy)
+
+        return deepest_features_torch
+
+
+
