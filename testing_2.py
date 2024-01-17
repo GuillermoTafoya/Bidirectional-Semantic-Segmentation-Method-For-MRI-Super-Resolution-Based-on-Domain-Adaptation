@@ -83,7 +83,7 @@ def main():
     #predic_axif3 = axfliper(predic_axif3[:,::-1,:,:],1)
     
     # Create a new model that outputs the deepest layer
-    deepest_layer_output = model.get_layer('activation_8').output
+    deepest_layer_output = model.get_layer('activation_27').output
     model_for_deepest_layer = tf.keras.Model(inputs=model.input, outputs=deepest_layer_output)
 
 
