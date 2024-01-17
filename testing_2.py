@@ -83,7 +83,7 @@ def main():
     #predic_axif3 = axfliper(predic_axif3[:,::-1,:,:],1)
     
     # Create a new model that outputs the deepest layer
-    deepest_layer_output = model.get_layer('activation_5').output
+    deepest_layer_output = model.get_layer('activation_8').output
     model_for_deepest_layer = tf.keras.Model(inputs=model.input, outputs=deepest_layer_output)
 
 
@@ -94,133 +94,26 @@ def main():
     print("Shape of the output feature map:", deepest_layer_features.shape)
 
     print("Sample output from the first image in the batch:")
-    print(deepest_layer_features[0, :, :, :5])  
+    print(deepest_layer_features[0, :, :, :10])  
+
+
+    import matplotlib.pyplot as plt
+
+    feature_maps = deepest_layer_features[0]  # first image in the batch
+
+    # Let's visualize and save the first 5 feature maps
+    for i in range(10):
+        plt.figure(figsize=(5, 5))
+        plt.imshow(feature_maps[:, :, i], cmap='viridis')  
+        plt.title(f'Feature Map {i+1}')
+        plt.axis('off')
+        plt.savefig(f'{args.out}/feature_map_{i+1}.png')
+        plt.close()
     
     del model, test_dic, callbacks
     reset_gpu()
     
-    
-    """
 
-    test_dic, _ =make_dic(img_list, img_list, isize, 'cor',max_shape=max_shape)
-    model = Unet_network([*isize,1], iaxis[1], metrics=coef).build()
-    callbacks=make_callbacks(cor, hist_loc+'/fold'+str(0)+'cor.tsv')
-    model.load_weights(cor)
-
-    predic_cor = model.predict(test_dic, batch_size=30)
-    predic_corf1 = model.predict(test_dic[:,:,::-1,:], batch_size=30)
-    predic_corf1 = predic_corf1[:,:,::-1,:]
-    predic_corf2 = model.predict(cofliper(test_dic), batch_size=30)
-    predic_corf2 = cofliper(predic_corf2,1)
-    predic_corf3 = model.predict(cofliper(test_dic[:,:,::-1,:]), batch_size=30)
-    predic_corf3 = cofliper(predic_corf3[:,:,::-1,:],1)
-
-    del model, test_dic, callbacks
-    reset_gpu()
-
-
-    test_dic, _ =make_dic(img_list, img_list, isize, 'sag',max_shape=max_shape)
-    model = Unet_network([*isize, 1], iaxis[2], metrics=coef).build()
-    callbacks=make_callbacks(sag, hist_loc+'/fold'+str(0)+'sag.tsv')
-    model.load_weights(sag)
-    predic_sag = model.predict(test_dic, batch_size=30)
-    predic_sagf1 = model.predict(test_dic[:,::-1,:,:], batch_size=30)
-    predic_sagf1 = predic_sagf1[:,::-1,:,:]
-    predic_sagf2 = model.predict(test_dic[:,:,::-1,:], batch_size=30)
-    predic_sagf2 = predic_sagf2[:,:,::-1,:]
-    del model, test_dic, callbacks
-    reset_gpu()
-
-    predic_sag = np.stack((predic_sag[...,0], predic_sag[...,1], predic_sag[...,1],
-                                predic_sag[...,2], predic_sag[...,2], predic_sag[...,3],
-                                predic_sag[...,3]),axis=-1)
-    predic_sagf1 = np.stack((predic_sagf1[...,0], predic_sagf1[...,1], predic_sagf1[...,1],
-                                predic_sagf1[...,2], predic_sagf1[...,2], predic_sagf1[...,3],
-                                predic_sagf1[...,3]),axis=-1)
-    predic_sagf2 = np.stack((predic_sagf2[...,0], predic_sagf2[...,1], predic_sagf2[...,1],
-                                predic_sagf2[...,2], predic_sagf2[...,2], predic_sagf2[...,3],
-                                predic_sagf2[...,3]),axis=-1)
-
-    import nibabel as nib
-    predic_axi = return_shape(img_list, predic_axi, 'axi')
-    predic_axif1 = return_shape(img_list, predic_axif1, 'axi')
-    predic_axif2 = return_shape(img_list, predic_axif2, 'axi')
-    predic_axif3 = return_shape(img_list, predic_axif3, 'axi')
-    predic_cor = return_shape(img_list, predic_cor, 'cor')
-    predic_corf1 = return_shape(img_list, predic_corf1, 'cor')
-    predic_corf2 = return_shape(img_list, predic_corf2, 'cor')
-    predic_corf3 = return_shape(img_list, predic_corf3, 'cor')
-    predic_sag = return_shape(img_list, predic_sag, 'sag')
-    predic_sagf1 = return_shape(img_list, predic_sagf1, 'sag')
-    predic_sagf2 = return_shape(img_list, predic_sagf2, 'sag')
-    argmax_sum(img_list, result_loc, '', predic_axi, predic_axif1, predic_axif2, predic_axif3, predic_cor, predic_corf1, predic_corf2, predic_corf3, predic_sag, predic_sagf1, predic_sagf2)
-    predic_final = predic_axi+predic_axif1+predic_axif2+predic_axif3+predic_cor+predic_corf1+predic_corf2+predic_corf3+predic_sag+predic_sagf1+predic_sagf2
-
-    
- 
-    if np.shape(img_list):
-        
-       for i in range(0,len(img_list)):
-            img = nib.load(img_list[i])
-            new_img = nib.Nifti1Image(np.argmax(predic_final[i],axis=-1), img.affine, img.header)
-            filename=img_list[i].split('/')[-1:][0].split('.nii')[0]
-            filename_complete=filename+'_deep_agg_sp.nii.gz'
-            savedloc = args.out+str(filename_complete)
-            nib.save(new_img, savedloc)
-            relabel(savedloc,ilabel,olabel)
-            if args.merge:
-                filename_complete=filename+'_deep_agg_merged.nii.gz'
-                savedloc = args.out+str(filename_complete)
-                nib.save(new_img, savedloc)
-                relabel(savedloc,[1,2,5,6,4,3,4,5],[161,160,1,42,4,5,161,160])
-            make_verify(img_list[i],savedloc,args.out)  
-            if args.cp_seg:   
-                recon_cp, header =medpy.io.load(cp_seg)
-                recon_sp, header =medpy.io.load(filename_complete)
-                
-                for i in range(recon_sp.shape[0]):
-                    for j in range(recon_sp.shape[1]):
-                        for k in range (recon_sp.shape[2]):
-                            if recon_cp[i,j,k]==1.0 and recon_sp[i,j,k]!=1.0:
-                                recon_sp[i,j,k]=1.0 
-                            elif recon_cp[i,j,k]==42.0 and recon_sp[i,j,k]!=42.0:
-                                recon_sp[i,j,k]=42.0   
-                            elif recon_cp[i,j,k]==0.0 and recon_sp[i,j,k]!=0.0:
-                                recon_sp[i,j,k]=0.0                                
-                            elif recon_sp[i,j,k]==5.0 and recon_cp[i,j,k]==0.0:
-                                recon_sp[i,j,k]=0.0
-                            elif recon_cp[i,j,k]==160.0 and recon_sp[i,j,k]==161.0:
-                                recon_sp[i,j,k]=160.0
-                            elif recon_cp[i,j,k]==161.0 and recon_sp[i,j,k]==160.0:
-                                recon_sp[i,j,k]=161.0   
-                            elif recon_cp[i,j,k]==160.0 and recon_sp[i,j,k]!=160.0:
-                                recon_sp[i,j,k]=4.0
-                            elif recon_cp[i,j,k]==161.0 and recon_sp[i,j,k]!=161.0:
-                                recon_sp[i,j,k]=5.0                      
-                            elif recon_sp[i,j,k]==42.0 and recon_cp[i,j,k]==0.0:
-                                recon_sp[i,j,k]=42.0   
-                            elif recon_sp[i,j,k]==4.0 and recon_cp[i,j,k]==0:
-                                recon_sp[i,j,k]=0.0
-                            elif recon_sp[i,j,k]==4.0 and recon_cp[i,j,k]==160.0:
-                                recon_sp[i,j,k]=160.0   
-                            elif recon_sp[i,j,k]==5.0 and recon_cp[i,j,k]==161.0:
-                                recon_sp[i,j,k]=161.0 
-                                
-                            else:
-                                recon_sp[i,j,k]= recon_sp[i,j,k]
-                
-                new_sp = nib.Nifti1Image(recon_sp,img.affine, img.header)
-                savedloc=args.out+filename+'_deep_agg.nii.gz'
-                nib.save(new_sp, savedloc)       
-                
-    else:
-        img = nib.load(img_list)
-        new_img = nib.Nifti1Image(np.argmax(predic_final,axis=-1), img.affine, img.header)
-        filename=img_list.split('/')[-1:][0].split('.nii')[0]
-        savedloc=args.out+filename+'_deep_agg.nii.gz'
-        nib.save(new_img, savedloc)
-        relabel(savedloc,ilabel,olabel)
-    """
     return 0          
 
 

@@ -9,6 +9,7 @@ class Decoder_r(nn.Module):
         super(Decoder_r, self).__init__()  
         self.pixelShuffle1 = nn.PixelShuffle(2)
         self.pixelShuffle2 = nn.PixelShuffle(2)
+        # TODO assert if necessary
         #self.bilinear_interpolation_layer = F.interpolate(size=(320,320))
 
     def forward(self, x):
@@ -17,6 +18,7 @@ class Decoder_r(nn.Module):
         dict_feats['step1'] = x
         x = self.pixelShuffle2(x)
         dict_feats['step2'] = x
+        # TODO assert if necessary
         #x = F.interpolate(x,size=(320,320),mode='bilinear')
         return (x,dict_feats)
     
@@ -31,20 +33,11 @@ class Pdd(nn.Module):
     # initializers
     def __init__(self, d=64):
         """
-        five convolutional layers with 4 x 4 convolutional kernel size, 
+        Five convolutional layers with 4 x 4 convolutional kernel size, 
         where the channel number is {64, 128, 256, 512, 1}, respectively
         """
         super(Pdd, self).__init__()
-        """
-        self.conv1 = nn.Conv2d(6, d, 4, 2, 1)
-        self.conv2 = nn.Conv2d(d, d * 2, 4, 2, 1)
-        self.conv2_bn = nn.BatchNorm2d(d * 2)
-        self.conv3 = nn.Conv2d(d * 2, d * 4, 4, 2, 1)
-        self.conv3_bn = nn.BatchNorm2d(d * 4)
-        self.conv4 = nn.Conv2d(d * 4, d * 8, 4, 1, 1)
-        self.conv4_bn = nn.BatchNorm2d(d * 8)
-        self.conv5 = nn.Conv2d(d * 8, 1, 4, 1, 1)
-        """
+
         self.step1 = nn.Sequential(
             nn.ConvTranspose2d(1, 64, kernel_size=4),
             nn.LeakyReLU(.02)
@@ -68,18 +61,6 @@ class Pdd(nn.Module):
         for m in self._modules:
             normal_init(self._modules[m], mean, std)
 
-    """
-    # forward method
-    def forward(self, input, label):
-        x = torch.cat([input, label], 1)
-        x = F.leaky_relu(self.conv1(x), 0.2)
-        x = F.leaky_relu(self.conv2_bn(self.conv2(x)), 0.2)
-        x = F.leaky_relu(self.conv3_bn(self.conv3(x)), 0.2)
-        x = F.leaky_relu(self.conv4_bn(self.conv4(x)), 0.2)
-        x = F.sigmoid(self.conv5(x))
-
-        return x
-    """
     def forward(self, x):
         x = self.step1(x)
         x = self.step2(x)
@@ -89,9 +70,7 @@ class Pdd(nn.Module):
         return x
     
 if __name__ == '__main__':
-    #from torchsummary import summary
     from torchinfo import summary
-    #model = Net().to(device)
     rmodel = Decoder_r()
     pddmodel = Pdd()
     summary(rmodel, input_size=(16, 80, 80), device='cpu')

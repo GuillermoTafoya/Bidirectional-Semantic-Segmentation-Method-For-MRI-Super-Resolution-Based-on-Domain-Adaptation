@@ -1,3 +1,5 @@
+""" Full assembly of the parts to form the complete network """
+
 import torch.nn as nn
 
 import E
