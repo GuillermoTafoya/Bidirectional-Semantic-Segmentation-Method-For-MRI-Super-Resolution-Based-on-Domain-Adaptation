@@ -1,38 +1,34 @@
-""" Full assembly of the parts to form the complete network """
+import torch.nn as nn
 
-import torch.nn.functional as F
+from config_parser import config
+from unet.unet_network import Unet_network
 
-from unet.unet_parts import *
-
+parser = config()
+args = parser.parse_args()
 
 class Module_e(nn.Module):
-    def __init__(self, n_channels, n_classes, bilinear=True):
+    def __init__(self,
+                 axi,
+                 isize = [160, 160], 
+                 iaxis = [7,7,4], 
+                 loss = 'dice_loss', 
+                 coef = 'dice_coef', 
+                 style = 'basic', 
+                 ite = 3, 
+                 depth = 4, 
+                 dim = 32, 
+                 init = 'he_normal', 
+                 acti = 'elu', 
+                 lr = 1e-4
+                 ):
         super(Module_e, self).__init__()
-        self.n_channels = n_channels
-        self.n_classes = n_classes
-        self.bilinear = bilinear
-
-        self.inc = DoubleConv(n_channels, 64)
-        self.down1 = Down(64, 128)
-        self.down2 = Down(128, 256)
-        self.down3 = Down(256, 512)
-        factor = 2 if bilinear else 1
-        self.down4 = Down(512, 1024 // factor)
-        self.up1 = Up(1024, 512 // factor, bilinear)
-        self.up2 = Up(512, 256 // factor, bilinear)
-        self.up3 = Up(256, 128 // factor, bilinear)
-        self.up4 = Up(128, 64, bilinear)
-        self.outc = OutConv(64, n_classes)
+        model = Unet_network([*isize,1], iaxis[0], loss=loss, metrics=coef, style=style, 
+                                  ite=ite, depth=depth, dim=dim, init=init, acti=acti, lr=lr).build()
+        self.model = model.load_weights(axi)
+        
 
     def forward(self, x):
-        x1 = self.inc(x)
-        x2 = self.down1(x1)
-        x3 = self.down2(x2)
-        x4 = self.down3(x3)
-        x5 = self.down4(x4)
-        x = self.up1(x5, x4)
-        x = self.up2(x, x3)
-        x = self.up3(x, x2)
-        x = self.up4(x, x1)
-        logits = self.outc(x)
+        
         return logits
+    
+test_dic, _ =make_dic(img_list, img_list, isize, 'axi',max_shape=max_shape)
