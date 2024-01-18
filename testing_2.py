@@ -104,7 +104,7 @@ def main():
     # Let's visualize and save the first 5 feature maps
     for i in range(10):
         plt.figure(figsize=(5, 5))
-        plt.imshow(feature_maps[:, :, i], cmap='viridis')  
+        plt.imshow(feature_maps[:, :, i], cmap='gray')  
         plt.title(f'Feature Map {i+1}')
         plt.axis('off')
         plt.savefig(f'{args.out}/feature_map_{i+1}.png')
