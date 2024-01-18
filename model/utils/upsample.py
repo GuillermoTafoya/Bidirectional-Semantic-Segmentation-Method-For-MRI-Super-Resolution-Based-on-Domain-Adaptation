@@ -1,15 +1,21 @@
-import torch.functional as F
+import torch.nn.functional as F
 import torch
 
-def upsample(X, device, ratio=2, a=-0.5):
+def upsample(X, ratio=2, a=-0.5):
     h = 1/ratio
     high_res = []
     for batch in range(X.shape[0]):
-        im = X[batch][0].cpu().detach().numpy().squeeze()
+        im = X[batch][0]
         h, w = im.shape[0], im.shape[1]
         ht, wt = h*ratio, w*ratio
 
-        n_im = F.interpolate(im, size=(ht, wt), mode='bilinear', align_corners=True)
+        im = im[None, None, :]
+        print('im')
+        print(im.shape)
+        print(h)
+        print(w)
+
+        n_im = F.interpolate(im, size=[ht, wt], mode='bilinear', align_corners=True)
         high_res.append(n_im)
     return torch.cat(high_res,0)
 

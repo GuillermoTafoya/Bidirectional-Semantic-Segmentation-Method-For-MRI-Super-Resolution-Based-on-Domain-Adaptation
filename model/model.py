@@ -7,7 +7,7 @@ import S
 import R
 from utils import downsample
 
-class JUAN(nn.Module):
+class JUAN(nn.Module): # ROBERTO -> roBERTo
     def __init__(self):
         super(JUAN, self).__init__()
         self.module_e = E.Module_e
