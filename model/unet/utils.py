@@ -1,3 +1,4 @@
+import numpy as np
 
 def reset_gpu():
     from tensorflow.keras import backend as K
@@ -239,7 +240,6 @@ def make_dic(img_list, gold_list, input_size, dim, flip=0,max_shape=[-1,-1,-1]):
 
     return dic, seg
 
-
 def make_result(output, img_list, result_loc, axis, ext=''):
     import nibabel as nib
     import numpy as np, ipdb
@@ -307,7 +307,6 @@ def return_shape(test_list, predic_array, dim):
         output[i2]=predic
     return output
 
-
 def argmax_sum(test_list, result_loc, ext='', *args):
     import numpy as np
     import nibabel as nib
@@ -332,7 +331,6 @@ def argmax_sum(test_list, result_loc, ext='', *args):
         filename=filename+'_deep_argmax'+str(ext)+'.nii.gz'
         #nib.save(new_img, result_loc+str(filename))
 
-import numpy as np
 def make_sum(axi_filter, cor_filter, sag_filter, input_name, result_loc,output_labels = np.array([1,2,3,4,5,6])):
     import nibabel as nib
     import sys, glob
@@ -596,5 +594,3 @@ def make_callbacks(weight_name, history_name, monitor='val_loss', patience=100, 
     checkpoint=ModelCheckpoint(filepath=weight_name, monitor=monitor, mode=mode, save_best_only=True, save_weights_only=save_weights_only, verbose=0)
     csvlog=CSVLogger_time(history_name, separator='\t')
     return [earlystop, checkpoint, csvlog]
-
-
