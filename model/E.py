@@ -1,6 +1,6 @@
 import torch.nn as nn
 
-from config_parser import config
+from unet.config import config
 from unet.unet_network import Unet_network
 
 parser = config()
@@ -22,10 +22,7 @@ class Module_e(nn.Module):
                  lr = 1e-4
                  ):
         super(Module_e, self).__init__()
-        model = Unet_network([*isize,1], iaxis[0], loss=loss, metrics=coef, style=style, 
-                                  ite=ite, depth=depth, dim=dim, init=init, acti=acti, lr=lr).build()
-        self.model = model.load_weights(axi)
-        
+    parser = config()
 
     def forward(self, x):
         

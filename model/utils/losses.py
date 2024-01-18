@@ -28,7 +28,7 @@ def r_loss(r_d_It, It, r_Is, u_Is):
 
     return l_mse + l_per
 
-pdd_loss = 0
+
 
 def s_loss(s_Is, u_As, s_d_r_Is):
     if not torch.is_tensor(s_Is):
