@@ -24,9 +24,9 @@ def main():
     curent_path = os.getcwd()
     result_loc = os.path.join(os.getcwd()+'result/conv_style/')
     weight_loc = os.path.join(os.getcwd() +'./')
-    axi = ('/neuro/labs/grantlab/research/MRI_processing/marisol.lemus/subplate_seg_deep_project/experiments/training_8/training_noatt_final/weights/fold0axi.h5')
-    cor =  ('/neuro/labs/grantlab/research/MRI_processing/marisol.lemus/subplate_seg_deep_project/experiments/training_8/training_noatt_final/weights/fold0cor.h5')
-    sag =  ('/neuro/labs/grantlab/research/MRI_processing/marisol.lemus/subplate_seg_deep_project/experiments/training_8/training_noatt_final/weights/fold0sag.h5')
+    axi = ('./model/unet/weights/fold0axi.h5')
+    cor =  ('./model/unet/weights/fold0cor.h5')
+    sag =  ('./model/unet/weights/fold0sag.h5')
     hist_loc = os.path.join(os.getcwd() + 'history/')
     isize = [192, 192]
     #style = 'basic'

@@ -25,9 +25,9 @@ def main():
     curent_path = os.getcwd()
     result_loc = os.path.join(os.getcwd()+'result/conv_style/')
     weight_loc = os.path.join(os.getcwd() +'./')
-    axi = ('/neuro/labs/grantlab/research/MRI_processing/marisol.lemus/subplate_seg_deep_project/experiments/training_8/training_noatt_final/weights/fold0axi.h5')
-    cor =  ('/neuro/labs/grantlab/research/MRI_processing/marisol.lemus/subplate_seg_deep_project/experiments/training_8/training_noatt_final/weights/fold0cor.h5')
-    sag =  ('/neuro/labs/grantlab/research/MRI_processing/marisol.lemus/subplate_seg_deep_project/experiments/training_8/training_noatt_final/weights/fold0sag.h5')
+    axi = ('./model/unet/weights/fold0axi.h5')
+    cor =  ('./model/unet/weights/fold0cor.h5')
+    sag =  ('./model/unet/weights/fold0sag.h5')
     hist_loc = os.path.join(os.getcwd() + 'history/')
     isize = [192, 192]
     #style = 'basic'
@@ -104,7 +104,7 @@ def main():
     # Let's visualize and save the first 5 feature maps
     for i in range(10):
         plt.figure(figsize=(5, 5))
-        plt.imshow(feature_maps[:, :, i], cmap='viridis')  
+        plt.imshow(feature_maps[:, :, i], cmap='gray')  
         plt.title(f'Feature Map {i+1}')
         plt.axis('off')
         plt.savefig(f'{args.out}/feature_map_{i+1}.png')
