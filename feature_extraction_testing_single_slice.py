@@ -108,15 +108,14 @@ def main():
 
     print("Shape of the output feature map:", deepest_layer_features.shape)
 
-    print("Sample output from the first image in the batch:")
+    print("Sample output from the first channel in the batch:")
     print(deepest_layer_features[0, :, :, :1])  
 
 
     import matplotlib.pyplot as plt
 
-    feature_maps = deepest_layer_features[0]  # first image in the batch
+    feature_maps = deepest_layer_features[0]
 
-    # Let's visualize and save the first 5 feature maps
     for i in range(1):
         plt.figure(figsize=(5, 5))
         plt.imshow(feature_maps[:, :, i], cmap='gray')  
