@@ -13,21 +13,6 @@ def adjust_img(img):
         img = np.rot90(img)
         img = np.fliplr(img)
         return img
-"""
-
-for i, (dim, label) in enumerate([(0, 'Axial'), (1, 'Sagittal'), (2, 'Coronal')]):
-        input_slice = np.take(data, data.shape[i] // 2, axis=i)
-
-        input_slice = adjust_img(input_slice)
-
-        axarr[i, 0].imshow(input_slice, cmap='gray')
-
-
-        torch_slice
-
-plt.tight_layout()
-plt.savefig('test', bbox_inches='tight', pad_inches=0.1)
-plt.show()"""
 
 # Process and visualize one slice for demonstration
 input_slice = np.take(data, data.shape[0] // 2, axis=0)
