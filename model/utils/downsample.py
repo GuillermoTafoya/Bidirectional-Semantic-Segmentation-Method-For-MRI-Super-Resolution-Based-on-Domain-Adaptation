@@ -9,12 +9,16 @@ def downsample(X, device, fact=2):
         im = batch.cpu().detach().numpy().squeeze()
 
         sx, sy = im.shape
-        X, Y = np.ogrid[0:sx, 0:sy]
 
-        regions = sy//fact * (X//fact) + Y//fact
-        res = ndimage.mean(im, labels=regions, index=np.arange(regions.max() + 1))
-        res.shape = (sx//fact, sy//fact)
+        cropped_sx, cropped_sy = (sx // fact) * fact, (sy // fact) * fact
+        cropped_im = im[:cropped_sx, :cropped_sy]
+
+        X, Y = np.ogrid[0:cropped_sx, 0:cropped_sy]
+
+        regions = cropped_sy // fact * (X // fact) + Y // fact
+        res = ndimage.mean(cropped_im, labels=regions, index=np.arange(regions.max() + 1))
+        res.shape = (cropped_sx // fact, cropped_sy // fact)
         
-        res = torch.from_numpy(res).to(device)
+        res = torch.from_numpy(res)#.to(device)
         low_res.append(res)
-    return torch.cat(low_res, 0)
+    return torch.cat([x.unsqueeze(0) for x in low_res], 0)

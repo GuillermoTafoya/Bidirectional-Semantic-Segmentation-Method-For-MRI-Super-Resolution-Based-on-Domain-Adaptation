@@ -47,10 +47,13 @@ def main():
         exit()
 
     if os.path.isdir(args.inp):
+        print("Is a directory")
         img_list = np.asarray(sorted(glob.glob(args.inp+'/*nuc.nii*')))
     elif os.path.isfile(args.inp):
+        print("Is a file")
         img_list = np.asarray(sorted(glob.glob(args.inp)))
     else:
+        print("Is a leprechaun")
         img_list = np.asarray(sorted(glob.glob(args.inp)))
     
     if len(img_list)==0:
