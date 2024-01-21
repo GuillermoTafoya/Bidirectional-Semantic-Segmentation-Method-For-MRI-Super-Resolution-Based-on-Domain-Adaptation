@@ -2,11 +2,11 @@ import numpy as np
 import torch
 from scipy import ndimage
 
-def block_mean(X, device, fact=2):
+def downsample(X, device, fact=2):
     low_res = []
 
-    for batch in im:
-        im = X[batch][0].cpu().detach().numpy().squeeze()
+    for batch in X:
+        im = batch.cpu().detach().numpy().squeeze()
 
         sx, sy = im.shape
         X, Y = np.ogrid[0:sx, 0:sy]

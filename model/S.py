@@ -10,18 +10,19 @@ import torch.nn as nn
 class Decoder_s(nn.Module):
     def __init__(self):
         self.step1 = nn.ConvTranspose2d(1, 1, kernel_size=3, padding=0, stride=2, output_padding=1)
-        self.step2 = nn.ConvTranspose2d(1, 1, kernel_size=3, padding=0, stride=2, output_padding=1)
-        self.step3 = nn.ConvTranspose2d(1, 1, kernel_size=9, padding=0, stride=1)
+        self.step2 = nn.ConvTranspose2d(1, 3, kernel_size=3, padding=0, stride=2, output_padding=1)
+        self.step3 = nn.ConvTranspose2d(3, 6, kernel_size=9, padding=0, stride=1)
         self.activation = nn.Softmax()
 
-    def forward(self, dict_feats, x):
+    def forward(self, R_feats, x):
         x = self.step1(x)
-        x = x + dict_feats['step1']
+        ft = x
+        x = x + R_feats['step1']
         x = self.step2(x)
-        x = x + dict_feats['step2']
+        x = x + R_feats['step2']
         x = self.step3(x)
         s = self.activation(x)
-        return s
+        return s, ft
 
 # Output-Space Domain Discriminator (ODD) of the Module S. Encode generated labels to obtain ODD Loss.
 class Odd(nn.Module):
