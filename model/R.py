@@ -47,8 +47,8 @@ class Decoder_r(nn.Module):
     def __init__(self):
         super(Decoder_r, self).__init__() 
         # TODO assert channels
-        self.firstUpscaling = ESPCN(2,64)
-        self.secondUpscaling = ESPCN(2,64)
+        self.firstUpscaling = ESPCN(2, num_channels = 64)
+        self.secondUpscaling = ESPCN(2, num_channels = 64, output_channels = 1)
         # TODO assert if necessary
         #self.bilinear_interpolation_layer = F.interpolate(size=(320,320))
 
