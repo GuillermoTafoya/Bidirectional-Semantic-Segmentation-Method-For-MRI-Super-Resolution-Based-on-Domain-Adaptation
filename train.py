@@ -7,13 +7,13 @@ from model.utils import *
 from model.utils.losses import *
 
 class Trainer:
-    def __init__(self, device, batch):
+    def __init__(self, source_path, view, device, batch):
         self.model = model()
         self.device = device
-        self.batch = batch
         
-        train_dl, val_dl = loader(source)
-        self.loader = {"tr": train_dl, "ts": val_dl}
+        tr_lowres_dl, tr_highres_dl, ts_lowres_dl, ts_highres_dl = loader(source_path, view, batch, 192)
+        self.loader = {"tr_lr": tr_lowres_dl, "tr_hr": tr_highres_dl, 
+                       "ts_lr": ts_lowres_dl, "ts_hr": ts_highres_dl}
 
         self.optimizer_r = optim.Adam(self.model.decoder_r.parameters(), lr=1e-4, weight_decay=1e-5)
         self.optimizer_pdd = optim.Adam(self.model.pdd.parameters(), lr=1e-4, weight_decay=1e-5)
@@ -21,8 +21,6 @@ class Trainer:
         self.optimizer_odd = optim.Adam(self.model.odd.parameters(), lr=1e-4, weight_decay=1e-5)
 
     def train(self, epochs):
-        current_loader = self.loader["tr"]
-
         self.writer = open(self.tensor_path, 'w')
         self.writer.write('Epoch, train_r, train_pdd, train_s, train_pdd, test_r, test_pdd, test_s, test_pdd'+'\n')
 
@@ -38,11 +36,18 @@ class Trainer:
         odd = DataParallel(self.model.odd).to(self.device).train()
 
         # ------ PRE-TRAIN -------
-        for id, data in enumerate(current_loader):
+        lr_iterator = iter(self.loader['tr_lr'])
+        for id, data in enumerate(self.loader["tr_hr"]):
             # Inputs
-            Is = data['Is'].to(self.device)
-            As = data['As'].to(self.device)
-            It = data['It'].to(self.device)
+            try:
+                data_l = next(lr_iterator)
+            except StopIteration:
+                lr_iterator = iter(self.loader['tr_lr'])
+                data_l = next(lr_iterator)
+
+            Is = data_l['source'].to(self.device) #Is
+            As = data_l['target'].to(self.device) #As
+            It = data.to(self.device)     #It
 
             d_It = downsample(It)
 
@@ -56,7 +61,7 @@ class Trainer:
 
             # Module S
             s_Is, layers_S_Is = module_S(layers_R_Is, Is_Unet)
-            s_It, layers_S_It = module_S(layers_R_It, d_It_Unet)
+            # s_It, layers_S_It = module_S(layers_R_It, d_It_Unet)
 
             # Labels
             At = max_threshold(r_It)
@@ -133,11 +138,20 @@ class Trainer:
             odd = DataParallel(self.model.odd).to(self.device).train()
 
             epoch_r_loss, epoch_pdd_loss, epoch_S_loss, epoch_odd_loss = 0.0, 0.0, 0.0, 0.0
-            for id, data in enumerate(current_loader):
+
+            lr_iterator = iter(self.loader['tr_lr'])
+            for id, data in enumerate(self.loader["tr_hr"]):
                 # Inputs
-                Is = data['Is'].to(self.device)
-                As = data['As'].to(self.device)
-                It = data['It'].to(self.device)
+                try:
+                    data_l = next(lr_iterator)
+                except StopIteration:
+                    lr_iterator = iter(self.loader['tr_lr'])
+                    data_l = next(lr_iterator)
+
+                Is = data_l['source'].to(self.device) #Is
+                As = data_l['target'].to(self.device) #As
+                It = data.to(self.device)     #It
+
                 old_c_As = c_As_list[id]
                 old_At = At_list[id]
 
@@ -153,7 +167,7 @@ class Trainer:
 
                 # Module S
                 s_Is, layers_S_Is = module_S(layers_R_Is, Is_Unet)
-                s_It, layers_S_It = module_S(layers_R_It, d_It_Unet)
+                # s_It, layers_S_It = module_S(layers_R_It, d_It_Unet)
 
                 # Labels
                 At = max_threshold(r_It)
@@ -237,15 +251,21 @@ class Trainer:
 
     def test(self,):
         self.model.eval()
-        current_loader = self.loader['ts']
 
         epoch_r_loss, epoch_pdd_loss, epoch_S_loss, epoch_odd_loss = 0.0, 0.0, 0.0, 0.0
 
-        for id, data in enumerate(current_loader):
+        lr_iterator = iter(self.loader['ts_lr'])
+        for id, data in enumerate(self.loader["ts_hr"]):
             # Inputs
-            Is = data['Is'].to(self.device)
-            As = data['As'].to(self.device)
-            It = data['It'].to(self.device)
+            try:
+                data_l = next(lr_iterator)
+            except StopIteration:
+                lr_iterator = iter(self.loader['ts_lr'])
+                data_l = next(lr_iterator)
+
+            Is = data_l['source'].to(self.device) #Is
+            As = data_l['target'].to(self.device) #As
+            It = data.to(self.device)     #It
 
             d_It = downsample(It)
 
