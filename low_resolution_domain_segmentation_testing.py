@@ -180,9 +180,7 @@ def main():
                             elif recon_sp[i,j,k]==4.0 and recon_cp[i,j,k]==0:
                                 recon_sp[i,j,k]=0.0
                             elif recon_sp[i,j,k]==4.0 and recon_cp[i,j,k]==160.0:
-                                recon_sp[i,j,k]=160.0   
-                            elif recon_sp[i,j,k]==5.0 and recon_cp[i,j,k]==161.0:
-                                recon_sp[i,j,k]=161.0 
+                                recisizecon_sp[i,j,k]=161.0 
                                 
                             else:
                                 recon_sp[i,j,k]= recon_sp[i,j,k]

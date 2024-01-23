@@ -2,19 +2,21 @@
 
 import torch.nn as nn
 
-import E
-import S
-import R
-from utils import downsample
+
+from .S import *
+from .R import *
+from .E import *
+
+from .utils import downsample
 
 class JUAN(nn.Module): # ROBERTO -> roBERTo
-    def __init__(self):
+    def __init__(self, gpu, batch):
         super(JUAN, self).__init__()
-        self.module_e = E.Module_e
-        self.decoder_r = R.Decoder_r()
-        self.pdd = R.Pdd()
-        self.decoder_s = S.Decoder_s()
-        self.odd = S.Odd()
+        self.module_e = Module_e(gpu, batch)
+        self.decoder_r = Decoder_r()
+        self.pdd = Pdd()
+        self.decoder_s = Decoder_s()
+        self.odd = Odd()
 
     def forward(self, data_dic):
         # data_dic = {"Is": low_res images,

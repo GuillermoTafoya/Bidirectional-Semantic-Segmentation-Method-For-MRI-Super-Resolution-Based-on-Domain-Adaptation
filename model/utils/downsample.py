@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from scipy import ndimage
 
-def downsample(X, device, fact=2):
+def downsample(X, fact=2):
     low_res = []
 
     for batch in X:
@@ -19,6 +19,6 @@ def downsample(X, device, fact=2):
         res = ndimage.mean(cropped_im, labels=regions, index=np.arange(regions.max() + 1))
         res.shape = (cropped_sx // fact, cropped_sy // fact)
         
-        res = torch.from_numpy(res)#.to(device)
+        res = torch.from_numpy(res)
         low_res.append(res)
     return torch.cat([x.unsqueeze(0) for x in low_res], 0)

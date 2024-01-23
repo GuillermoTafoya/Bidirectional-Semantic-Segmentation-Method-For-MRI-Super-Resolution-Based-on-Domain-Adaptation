@@ -3,7 +3,7 @@ import torch.nn as nn
 import numpy as np
 import os
 
-from utils.vgg import VGG19
+from .vgg import *
 
 # Created by @simonamador, 12/12/2023
 # Inspired by Liang & Wang (doi: 10.1080/01431161.2023.2169593)

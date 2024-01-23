@@ -2,24 +2,22 @@ import tensorflow as tf
 from torch import from_numpy as t
 import torch.nn as nn
 
-from unet.config import config
-from unet.unet_network import Unet_network
-from unet.utils import *
-
-parser = config()
-args = parser.parse_args()
+from .unet.unet_network import Unet_network
+from .unet.utils import *
 
 class Module_e(nn.Module):
     def __init__(self,
                  gpu,
+                 batch,
                  view = 'axi',
-                 isize = [160, 160], 
+                 isize = [192, 192], 
                  iaxis = [7,7,4], 
                  coef = 'dice_coef'
                  ):
         super(Module_e, self).__init__()
+        self.batch = batch
         view_path = './model/unet/weights/fold0'+view+'.h5'
-        set_gpu(args.gpu)
+        set_gpu(gpu)
 
         model = Unet_network([*isize,1], iaxis[0], metrics=coef).build()
 
@@ -28,5 +26,7 @@ class Module_e(nn.Module):
         self.model = tf.keras.Model(inputs=model.input, outputs=deepest_layer_output)
 
     def forward(self, x):
-        deepest_layer_features = self.model.predict(x, batch=1)
-        return (t(deepest_layer_features))
+        x = x.cpu().numpy()
+        deepest_layer_features = self.model.predict(x, batch_size=self.batch)
+        print(deepest_layer_features.shape)
+        return t(deepest_layer_features)

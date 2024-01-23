@@ -1,15 +1,27 @@
 import torch
 from torch.nn import DataParallel
 import torch.optim as optim
+from datetime import date
 
-from model import model
+from model import JUAN
 from model.utils import *
 from model.utils.losses import *
 
 class Trainer:
-    def __init__(self, source_path, view, device, batch):
-        self.model = model()
+    def __init__(self, source_path, view, device, batch, gpu):
+        self.model = JUAN(gpu, batch)
         self.device = device
+
+        date_now = date.today().strftime("%b_%d_%Y")
+
+        self.tensor_path = './Results/Model_'+view+'_'+date_now+'/'
+        self.model_path = './Results/Model_'+view+'_'+date_now+'/Model'
+
+
+        if not os.path.exists(self.tensor_path):
+            os.mkdir(self.tensor_path)
+        if not os.path.exists(self.model_path):
+            os.mkdir(self.model_path)
         
         tr_lowres_dl, tr_highres_dl, ts_lowres_dl, ts_highres_dl = loader(source_path, view, batch, 192)
         self.loader = {"tr_lr": tr_lowres_dl, "tr_hr": tr_highres_dl, 
@@ -21,13 +33,15 @@ class Trainer:
         self.optimizer_odd = optim.Adam(self.model.odd.parameters(), lr=1e-4, weight_decay=1e-5)
 
     def train(self, epochs):
-        self.writer = open(self.tensor_path, 'w')
+        print('------Training model------')
+        print()
+        self.writer = open(self.tensor_path+'history.txt', 'w')
         self.writer.write('Epoch, train_r, train_pdd, train_s, train_pdd, test_r, test_pdd, test_s, test_pdd'+'\n')
 
         self.best_loss = 10000
 
-        c_As_list = dict
-        At_list = dict
+        c_As_list = dict()
+        At_list = dict()
 
         module_E = DataParallel(self.model.module_e).to(self.device).eval()
         decoder_r = DataParallel(self.model.decoder_r).to(self.device).train()
@@ -35,6 +49,8 @@ class Trainer:
         module_S = DataParallel(self.model.decoder_s).to(self.device).train()
         odd = DataParallel(self.model.odd).to(self.device).train()
 
+        print('-'*20)
+        print('Pre-Train')
         # ------ PRE-TRAIN -------
         lr_iterator = iter(self.loader['tr_lr'])
         for id, data in enumerate(self.loader["tr_hr"]):
@@ -45,15 +61,15 @@ class Trainer:
                 lr_iterator = iter(self.loader['tr_lr'])
                 data_l = next(lr_iterator)
 
-            Is = data_l['source'].to(self.device) #Is
-            As = data_l['target'].to(self.device) #As
-            It = data.to(self.device)     #It
+            Is = data_l['source'] #Is
+            As = data_l['target'].to(device) #As
+            It = data            #It
 
             d_It = downsample(It)
 
             # Module E
-            Is_Unet = module_E(Is)
-            d_It_Unet = module_E(d_It)
+            Is_Unet = module_E(Is).to(device)
+            d_It_Unet = module_E(d_It).to(device)
 
             # Module R
             r_Is, layers_R_Is = decoder_r(Is_Unet)
@@ -71,7 +87,7 @@ class Trainer:
 
             # Composite
             d_composite = downsample(r_Is)
-            composite_Unet = module_E(d_composite)
+            composite_Unet = module_E(d_composite).to(device)
             r_composite, layers_R_composite = decoder_r(composite_Unet)
             s_composite, layers_S_composite = module_S(layers_R_composite, composite_Unet)
 
@@ -127,6 +143,9 @@ class Trainer:
             Odd_loss.backward()
             self.optimizer_odd.step()
 
+        print('-'*20)
+        print('Training epochs')
+
         # Trains for all epochs
         for epoch in range(epochs):
             print('-'*15)
@@ -148,9 +167,9 @@ class Trainer:
                     lr_iterator = iter(self.loader['tr_lr'])
                     data_l = next(lr_iterator)
 
-                Is = data_l['source'].to(self.device) #Is
-                As = data_l['target'].to(self.device) #As
-                It = data.to(self.device)     #It
+                Is = data_l['source'] #Is
+                As = data_l['target'].to(device) #As
+                It = data    #It
 
                 old_c_As = c_As_list[id]
                 old_At = At_list[id]
@@ -158,8 +177,8 @@ class Trainer:
                 d_It = downsample(It)
 
                 # Module E
-                Is_Unet = module_E(Is)
-                d_It_Unet = module_E(d_It)
+                Is_Unet = module_E(Is).to(device)
+                d_It_Unet = module_E(d_It).to(device)
 
                 # Module R
                 r_Is, layers_R_Is = decoder_r(Is_Unet)
@@ -246,6 +265,8 @@ class Trainer:
             tr_loss = {'r': epoch_r_loss, 'pdd' : epoch_pdd_loss, 
                         's' : epoch_S_loss, 'odd' : epoch_S_loss}
             val_loss = self.test()
+            print('train_loss: {:.6f}'.format(tr_loss['s']))
+            print('val_loss: {:.6f}'.format(val_loss['s']))
 
             self.log(epoch, epochs, val_loss['s'], tr_loss, val_loss)
 
@@ -325,13 +346,13 @@ class Trainer:
         model_path = self.model_path
         self.writer.write(str(epoch+1) + ', ' +
                           str(tr[0]) + ', ' +
-                          str(tr[0]) + ', ' +
-                          str(tr[0]) + ', ' +
-                          str(tr[0]) + ', ' +
+                          str(tr[1]) + ', ' +
+                          str(tr[2]) + ', ' +
+                          str(tr[3]) + ', ' +
                           str(ts[0]) + ', ' +
-                          str(ts[0]) + ', ' +
-                          str(ts[0]) + ', ' +
-                          str(ts[0]) + ', ' + '\n')
+                          str(ts[1]) + ', ' +
+                          str(ts[2]) + ', ' +
+                          str(ts[3]) + ', ' + '\n')
 
         if (epoch + 1) % 50 == 0 or (epoch + 1) == epochs:
             torch.save({
@@ -354,7 +375,7 @@ class Trainer:
                 'odd': self.model.odd.state_dict(),
             }, model_path + f'/odd_{epoch + 1}.pth')
 
-        if val_loss[0] < self.best_loss:
+        if val_loss < self.best_loss:
             self.best_loss = val_loss[0]
             torch.save({
                 'epoch': epoch + 1,

@@ -11,7 +11,7 @@ class img_dataset(Dataset):
     # concatenates them together for both training and testing datasets (implements img_dataset class).
     def __init__(self, name, view, size: int = 192, highres=False, horizontal_flip: bool = False, 
                  vertical_flip: bool = False, rotation_angle: int = None):
-        self.root_dir = '../../Data/'
+        self.root_dir = './Data/'
         self.highres = highres
         self.srctrgt = ['source', 'target']
         self.name = name
@@ -74,11 +74,12 @@ class img_dataset(Dataset):
             if self.angle is not None:
                 n_img = self.rotation(n_img, self.angle)
 
-            n_img = np.expand_dims(n_img,axis=0)
+            n_img = np.expand_dims(n_img,axis=-1)
             img_torch = torch.from_numpy(n_img.copy()).type(torch.float)
 
             dataset = img_torch
         else:
+            dataset = dict()
             for class_name in self.srctrgt:
                 raw = nib.load(self.root_dir+class_name+'/'+self.name).get_fdata()
                 if self.view == 'L':
@@ -97,7 +98,7 @@ class img_dataset(Dataset):
                 if self.angle is not None:
                     n_img = self.rotation(n_img, self.angle)
 
-                n_img = np.expand_dims(n_img,axis=0)
+                n_img = np.expand_dims(n_img,axis=-1)
                 img_torch = torch.from_numpy(n_img.copy()).type(torch.float)
 
                 dataset[class_name] = img_torch
@@ -119,9 +120,9 @@ def data_augmentation(base_set, path, view, h, ids):
 
 def loader(source_path, view, batch_size, h):
     low_res = os.listdir(source_path+'source')
-    l_n = int(len(low_res.size)*.8)
+    l_n = int(len(low_res)*.8)
     high_res = os.listdir(source_path+'high_res')
-    h_n = int(len(high_res.size)*.8)
+    h_n = int(len(high_res)*.8)
 
     tr_lowres_set = img_dataset(low_res[0], view, size = h)
     tr_highres_set = img_dataset(high_res[0], view, size = h, highres = True)
