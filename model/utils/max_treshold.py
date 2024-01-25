@@ -13,11 +13,11 @@ def maximum_probability_thresholding(logits, threshold=0.9):
 """
 
 
-def max_threshold(predictions, lambda_v = 0.9):
+def max_threshold(predictions, device, lambda_v = 0.9):
     pseudo_labels=[]
     for batch in predictions:
         max_probs, max_classes = torch.max(batch, dim=-1)
-        pseudo_label = torch.where(max_probs > lambda_v, max_classes+1, torch.zeros(size=max_probs.shape))
+        pseudo_label = torch.where(max_probs > lambda_v, max_classes+1, torch.zeros(size=max_probs.shape).to(device))
         pseudo_labels.append(pseudo_label)
 
     return torch.cat(pseudo_labels, 0)

@@ -17,7 +17,7 @@ class Module_e(nn.Module):
         super(Module_e, self).__init__()
         self.batch = batch
         view_path = './model/unet/weights/fold0'+view+'.h5'
-        set_gpu(gpu)
+        set_gpu('0' if gpu == '2' else '2')
 
         model = Unet_network([*isize,1], iaxis[0], metrics=coef).build()
 
@@ -28,5 +28,5 @@ class Module_e(nn.Module):
     def forward(self, x):
         x = x.cpu().numpy()
         deepest_layer_features = self.model.predict(x, batch_size=self.batch)
-        print(deepest_layer_features.shape)
+        deepest_layer_features = np.transpose(deepest_layer_features, (0, 3, 1, 2))
         return t(deepest_layer_features)

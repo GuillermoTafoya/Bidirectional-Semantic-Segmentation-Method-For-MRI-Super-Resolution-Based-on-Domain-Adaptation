@@ -51,6 +51,7 @@ class Trainer:
 
         print('-'*20)
         print('Pre-Train')
+        prYellow(get_gpu_memory())
         # ------ PRE-TRAIN -------
         lr_iterator = iter(self.loader['tr_lr'])
         for id, data in enumerate(self.loader["tr_hr"]):
@@ -62,47 +63,103 @@ class Trainer:
                 data_l = next(lr_iterator)
 
             Is = data_l['source'] #Is
-            As = data_l['target'].to(device) #As
+            As = data_l['target'].to(self.device) #As
             It = data            #It
+
+            ###### TF channels to PyTorch ######
+
+            prGreen(f'{As.shape=}')
+            prGreen(f'{Is.shape=}')
+
+            prYellow(get_gpu_memory())
+
 
             d_It = downsample(It)
 
+            prGreen(f'{d_It.shape=}')
+            # print(It.shape)
+            # print(d_It.shape)
+
             # Module E
-            Is_Unet = module_E(Is).to(device)
-            d_It_Unet = module_E(d_It).to(device)
+            Is_Unet = module_E(Is).to(self.device)
+            d_It_Unet = module_E(d_It).to(self.device)
+
+            prGreen(f'{Is_Unet.shape=}')
+            prGreen(f'{Is_Unet.shape=}')
+
+            print('-'*20)
+            print('Module-E')
+            prYellow(get_gpu_memory())
 
             # Module R
             r_Is, layers_R_Is = decoder_r(Is_Unet)
             r_It, layers_R_It = decoder_r(d_It_Unet)
 
-            # Module S
-            s_Is, layers_S_Is = module_S(layers_R_Is, Is_Unet)
-            # s_It, layers_S_It = module_S(layers_R_It, d_It_Unet)
+            prGreen(f'{r_Is.shape=}')
+            prGreen(f'{layers_R_Is["step1"].shape=}')
+            prGreen(f'{layers_R_Is["step2"].shape=}')
 
+            prGreen(f'{r_It.shape=}')
+            prGreen(f'{layers_R_It["step1"].shape=}')
+            prGreen(f'{layers_R_It["step2"].shape=}')
+
+            print('-'*20)
+            print('Module-R')
+            prYellow(get_gpu_memory())
+
+            # Module S
+            print(layers_R_Is['step1'].shape, layers_R_Is['step2'].shape)
+
+            s_Is, layers_S_Is = module_S(layers_R_Is, Is_Unet)
+
+            print('-'*20)
+            print('Module-S')
+            prYellow(get_gpu_memory())
+            # s_It, layers_S_It = module_S(layers_R_It, d_It_Unet)
+            print(f'{s_Is.shape=}')
             # Labels
-            At = max_threshold(r_It)
-            c_As = LCS(r_Is, As)
+            At = max_threshold(r_It, self.device)
+            print('-'*20)
+            print('Max Treshold')
+            prYellow(get_gpu_memory())
+            print('-'*20)
+            prRed(f'{As.shape=}')
+            As_permuted = As.permute(0, 3, 1, 2) 
+            
+            c_As = LCS(upsample(As_permuted), s_Is)
             c_As_list[id] = c_As
             At_list[id] = At
 
+            
+
             # Composite
             d_composite = downsample(r_Is)
-            composite_Unet = module_E(d_composite).to(device)
+            composite_Unet = module_E(d_composite).to(self.device)
             r_composite, layers_R_composite = decoder_r(composite_Unet)
             s_composite, layers_S_composite = module_S(layers_R_composite, composite_Unet)
 
             # -------Update Module R-------
-            for param in self.model.module_r.parameters():
+            for param in self.model.decoder_r.parameters():
                 param.requires_grad = True
             for param in self.model.pdd.parameters():
                 param.requires_grad = True
-            for param in self.model.module_s.parameters():
+            for param in self.model.decoder_s.parameters():
                 param.requires_grad = False
             for param in self.model.odd.parameters():
                 param.requires_grad = False
 
             u_Is = upsample(Is)
+
+            prRed(f'{u_Is.shape=}')
+
             u_As = upsample(As)
+
+            prRed(f'{u_As.shape=}')
+
+            u_As = u_As.permute(0, 3, 1, 2) 
+
+            prRed(f'{u_As.shape=}')
+
 
             pdd_r_Is = pdd(r_Is)
             pdd_It = pdd(It)
@@ -120,11 +177,11 @@ class Trainer:
             
             # -------Update Module S-------
 
-            for param in self.model.module_r.parameters():
+            for param in self.model.decoder_r.parameters():
                 param.requires_grad = False
             for param in self.model.pdd.parameters():
                 param.requires_grad = False
-            for param in self.model.module_s.parameters():
+            for param in self.model.decoder_s.parameters():
                 param.requires_grad = True
             for param in self.model.odd.parameters():
                 param.requires_grad = True
@@ -168,7 +225,7 @@ class Trainer:
                     data_l = next(lr_iterator)
 
                 Is = data_l['source'] #Is
-                As = data_l['target'].to(device) #As
+                As = data_l['target'].to(self.device) #As
                 It = data    #It
 
                 old_c_As = c_As_list[id]
@@ -177,8 +234,8 @@ class Trainer:
                 d_It = downsample(It)
 
                 # Module E
-                Is_Unet = module_E(Is).to(device)
-                d_It_Unet = module_E(d_It).to(device)
+                Is_Unet = module_E(Is).to(self.device)
+                d_It_Unet = module_E(d_It).to(self.device)
 
                 # Module R
                 r_Is, layers_R_Is = decoder_r(Is_Unet)
@@ -189,8 +246,13 @@ class Trainer:
                 # s_It, layers_S_It = module_S(layers_R_It, d_It_Unet)
 
                 # Labels
-                At = max_threshold(r_It)
-                c_As = LCS(r_Is, As)
+                At = max_threshold(r_It,self.device)
+                # TODO
+
+                prRed(f'{As.shape=}')
+                As_permuted = As.permute(0, 3, 1, 2) 
+                prRed(f'{r_Is.shape=}')
+                c_As = LCS(upsample(As_permuted), r_Is)
 
                 # Composite
                 d_composite = downsample(r_Is)
@@ -199,17 +261,23 @@ class Trainer:
                 s_composite, layers_S_composite = module_S(layers_R_composite, composite_Unet)
 
                 # -------Update Module R-------
-                for param in self.model.module_r.parameters():
+                for param in self.model.decoder_r.parameters():
                     param.requires_grad = True
                 for param in self.model.pdd.parameters():
                     param.requires_grad = True
-                for param in self.model.module_s.parameters():
+                for param in self.model.decoder_s.parameters():
                     param.requires_grad = False
                 for param in self.model.odd.parameters():
                     param.requires_grad = False
 
                 u_Is = upsample(Is)
                 u_As = upsample(As)
+
+                prRed(f'{u_As.shape=}')
+
+                u_As = u_As.permute(0, 3, 1, 2) 
+
+                prRed(f'{u_As.shape=}')
 
                 pdd_r_Is = pdd(r_Is)
                 pdd_It = pdd(It)
@@ -227,11 +295,11 @@ class Trainer:
                 
                 # -------Update Module S-------
 
-                for param in self.model.module_r.parameters():
+                for param in self.model.decoder_s.parameters():
                     param.requires_grad = False
                 for param in self.model.pdd.parameters():
                     param.requires_grad = False
-                for param in self.model.module_s.parameters():
+                for param in self.model.decoder_s.parameters():
                     param.requires_grad = True
                 for param in self.model.odd.parameters():
                     param.requires_grad = True

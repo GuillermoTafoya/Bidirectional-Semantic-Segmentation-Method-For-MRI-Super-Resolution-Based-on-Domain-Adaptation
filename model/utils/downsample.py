@@ -18,6 +18,7 @@ def downsample(X, fact=2):
         regions = cropped_sy // fact * (X // fact) + Y // fact
         res = ndimage.mean(cropped_im, labels=regions, index=np.arange(regions.max() + 1))
         res.shape = (cropped_sx // fact, cropped_sy // fact)
+        res = np.expand_dims(res, axis = -1)
         
         res = torch.from_numpy(res)
         low_res.append(res)

@@ -19,7 +19,7 @@ class img_dataset(Dataset):
         self.horizontal = horizontal_flip
         self.vertical = vertical_flip
         self.angle = rotation_angle
-        self.size = size
+        self.size = size if not highres else size * 2
 
     def __len__(self):
         if self.highres:
@@ -121,7 +121,7 @@ def data_augmentation(base_set, path, view, h, ids):
 def loader(source_path, view, batch_size, h):
     low_res = os.listdir(source_path+'source')
     l_n = int(len(low_res)*.8)
-    high_res = os.listdir(source_path+'high_res')
+    high_res = os.listdir(source_path+'high_res')[:-50]
     h_n = int(len(high_res)*.8)
 
     tr_lowres_set = img_dataset(low_res[0], view, size = h)

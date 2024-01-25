@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-
+from .utils import *
 # Created by @simonamador, 12/12/2023
 # Inspired by Liang & Wang (doi: 10.1080/01431161.2023.2169593)
 
@@ -10,17 +10,33 @@ import torch.nn as nn
 class Decoder_s(nn.Module):
     def __init__(self):
         super(Decoder_s, self).__init__()
-        self.step1 = nn.ConvTranspose2d(1, 1, kernel_size=3, padding=0, stride=2, output_padding=1)
-        self.step2 = nn.ConvTranspose2d(1, 3, kernel_size=3, padding=0, stride=2, output_padding=1)
-        self.step3 = nn.ConvTranspose2d(3, 6, kernel_size=9, padding=0, stride=1)
+        self.step1 = nn.ConvTranspose2d(
+                                        in_channels=64, 
+                                        out_channels=32, 
+                                        kernel_size=3,
+                                        padding =1, 
+                                        )#output_padding=1)
+        self.step2 = nn.ConvTranspose2d(
+                                        in_channels=32, 
+                                        out_channels=32, 
+                                        kernel_size=3, 
+                                        stride=2,
+                                        padding =1,
+                                        output_padding=1
+                                        )
+        self.step3 = nn.ConvTranspose2d(32, 6, stride=2, kernel_size=9, padding =4, output_padding =1)
         self.activation = nn.Softmax()
 
     def forward(self, R_feats, x):
         x = self.step1(x)
         ft = x
         x = x + R_feats['step1']
+
+        #x = upsample(x)
+        
         x = self.step2(x)
         x = x + R_feats['step2']
+        #x = upsample(x)
         x = self.step3(x)
         s = self.activation(x)
         return s, ft

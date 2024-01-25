@@ -2,6 +2,7 @@ from train import Trainer
 import argparse
 import os
 import torch
+from model.utils.notices import prGreen
 
 def config():
     parser = argparse.ArgumentParser('   ==========  Training Script   ==========   ')
@@ -28,7 +29,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 torch.cuda.empty_cache()
 
 print()
-print('Loading trainer')
+prGreen('Loading trainer')
 
 JUAN = Trainer('./Data/', args.view, device, args.batch, args.gpu)
+prGreen('Training JUAN...')
 JUAN.train(args.epochs)

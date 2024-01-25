@@ -1,23 +1,56 @@
 import torch.nn.functional as F
 import torch
+from .notices import *
 
-def upsample(X, ratio=2, a=-0.5):
-    h = 1/ratio
+def upsample(X, ratio=2):
     high_res = []
+    
+    #prCyan(f'input {X.shape=}')
     for batch in range(X.shape[0]):
-        im = X[batch][0]
-        h, w = im.shape[0], im.shape[1]
-        ht, wt = h*ratio, w*ratio
+        # Assuming X is of shape [batch_size, channels, height, width]
+        im = X[batch, 0]  # Extract the first channel of the image
 
-        im = im[None, None, :]
-        print('im')
-        print(im.shape)
-        print(h)
-        print(w)
+        h, w = im.shape  # Original height and width
+        
+        ht, wt = h * ratio, w * ratio  # Target height and width
 
+        im = im[None, None, :]  # Reshape for interpolation
+
+        # Upsample the image
         n_im = F.interpolate(im, size=[ht, wt], mode='bilinear', align_corners=True)
+
+        #prOrange(f'single image upsampling: {n_im.shape=}')
+
         high_res.append(n_im)
-    return torch.cat(high_res,0)
+
+    #prCyan(f'output {torch.cat(high_res, 0).shape=}')
+
+    # Concatenate along the batch dimension
+    return torch.cat(high_res, 0)
+        
+
+    
+    """
+    h = 1/ratio
+    fhigh_res = []
+    for batch in X:
+        prCyan(f'{batch.shape=}')
+        high_res = []
+        for ch in batch:
+            prMagenta(f'{ch.shape=}')
+            im = ch
+            h, w = im.shape[0], im.shape[1]
+            ht, wt = h*ratio, w*ratio
+
+            im = im[None, None, :]
+
+            n_im = F.interpolate(im, size=[ht, wt], mode='bilinear', align_corners=True)
+
+            
+            high_res.append(n_im)
+        high_res = torch.cat(high_res,0)
+        fhigh_res.append(high_res)
+    return torch.cat(fhigh_res,0)"""
 
 
     # def bicubic(x, a):
